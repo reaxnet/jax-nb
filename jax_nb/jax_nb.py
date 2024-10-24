@@ -141,32 +141,32 @@ def pqeq_fori_loop(displacement_fn: Callable,
                    Ks: Array,
                    net_charge: float = 0.0,
                    cutoff: float = 12.5,
-                   iterations: int = 1,
+                   iterations: int = 2,
                    **kwargs
                    ) -> (Array, Array):
 
-    mat_A, dRcc, scalar_dRcc = build_A_matrix(displacement_fn, positions, neighbor, alpha, eta0, cutoff, **kwargs)
+    mat_A, dRcc, scalar_dRcc = build_A_matrix(displacement_fn, positions, neighbor, alpha, eta0, cutoff)
     r_shell = jnp.zeros_like(positions)
     if iterations == 1:
         vec_b = build_b_vector(dRcc, scalar_dRcc, positions, neighbor, r_shell, alpha, chi0, z, net_charge, cutoff)
         charges = jnp.linalg.solve(mat_A, vec_b)[:-1]
-        r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff, **kwargs)
+        r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff)
         return charges, r_shell
     
     elif iterations == 2:
         vec_b = build_b_vector(dRcc, scalar_dRcc, positions, neighbor, r_shell, alpha, chi0, z, net_charge, cutoff)
         charges = jnp.linalg.solve(mat_A, vec_b)[:-1]
-        r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff, **kwargs)
+        r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff)
         vec_b = build_b_vector(dRcc, scalar_dRcc, positions, neighbor, r_shell, alpha, chi0, z, net_charge, cutoff)
         charges = jnp.linalg.solve(mat_A, vec_b)[:-1]
-        r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff, **kwargs)
+        r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff)
         return charges, r_shell
 
     else:
         for _ in range(iterations):
             vec_b = build_b_vector(dRcc, scalar_dRcc, positions,  neighbor, r_shell, alpha, chi0, z, net_charge, cutoff)
             charges = jax.scipy.linalg.solve(mat_A, vec_b)[:-1]
-            r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff, **kwargs)
+            r_shell = compute_shell(dRcc, positions, neighbor, r_shell, charges, alpha, z, Ks, cutoff)
         return charges, r_shell
 
 
@@ -183,6 +183,7 @@ def nonbond_potential(displacement_fn: Callable,
                       atomic_numbers: Array,
                       d3_params: Dict[str, float],
                       cutoff: float = 12.5,
+                      compute_d3: bool=True,
                       r0ab: Array=r0ab,
                       rcov: Array=rcov,
                       r2r4: Array=r2r4,
@@ -209,6 +210,9 @@ def nonbond_potential(displacement_fn: Callable,
     pot += jnp.sum(vmap_coulombev(space.distance(dRsc), alpha[iidx, jidx], cutoff) * qs[iidx] * qc[jidx] * mask ) / 2.0
     pot += jnp.sum(vmap_coulombev(space.distance(dRss), alpha[iidx, jidx], cutoff) * qs[iidx] * qs[jidx] * mask ) / 2.0
     pot += jnp.sum(vmap_coulombev(space.distance(dRcs), alpha[iidx, jidx], cutoff) * qc[iidx] * qs[jidx] * mask ) / 2.0
+    
+    if not compute_d3:
+        return pot
 
     # DFT-D3 correction energy
     dr = dr / BOHR2ANGSTROM  
