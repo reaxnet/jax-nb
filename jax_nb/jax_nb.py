@@ -14,8 +14,10 @@ COULCONSTANTKCAL = 332.063710
 EV2KCALPMOL = 23.060549
 COULCONSTANTEV = 14.399645
 
-def taper(r, swa, swb):
-    '''Taper function for smooth cutoff'''
+def taper(r: Array, 
+          swa: float, 
+          swb: float) -> Array:
+    '''Taper function for smooth cutoff. The taper smooth is close to Ewald summation'''
     r = r - swa
     rc = swb - swa
     tap7 =  20.0 / jnp.power(rc, 7)
@@ -24,7 +26,10 @@ def taper(r, swa, swb):
     tap4 = -35.0 / jnp.power(rc, 4)
     return 1.0 + tap4 * jnp.power(r, 4) + tap5 * jnp.power(r, 5) + tap6 * jnp.power(r, 6) + tap7 * jnp.power(r, 7)
 
-def dtaper(r, swa, swb):
+def dtaper(r: Array, 
+           swa: float, 
+           swb: float) -> Array:
+    '''Analytical derivative of taper function'''
     r = r - swa
     rc = swb - swa
     tap7 =  20.0 / jnp.power(rc, 7)
@@ -33,13 +38,19 @@ def dtaper(r, swa, swb):
     tap4 = -35.0 / jnp.power(rc, 4) 
     return 7.0 * tap7 * jnp.power(r, 6) + 6.0 * tap6 * jnp.power(r, 5) + 5.0 * tap5 * jnp.power(r, 4) + 4.0 * tap4 * jnp.power(r, 3)
 
-def coulombev(r, alpha, cutoff):
+def coulombev(r: Array, 
+              alpha: Array, 
+              cutoff: float) -> Array:
     return jax.scipy.special.erf(alpha * r) * COULCONSTANTEV / r * taper(r, 0.0, cutoff) 
 
-def coulombkcal(r, alpha, cutoff):
+def coulombkcal(r: Array, 
+                alpha: Array, 
+                cutoff: float):
     return jax.scipy.special.erf(alpha * r) * COULCONSTANTKCAL / r * taper(r, 0.0, cutoff)
 
-def _dcoulombkcal(r, alpha, cutoff):
+def _dcoulombkcal(r: Array, 
+                  alpha: Array, 
+                  cutoff: float) -> Array:
     screen = jax.scipy.special.erf(alpha * r)
     dscreen = 2.0 * alpha * jnp.exp(- alpha * alpha * r * r) / jnp.sqrt(jnp.pi)
     coul  =   COULCONSTANTKCAL / r 
@@ -49,7 +60,9 @@ def _dcoulombkcal(r, alpha, cutoff):
 
     return dcoul * screen * _taper + coul * dscreen * _taper + coul * screen * _dtaper
 
-def _sforce_dcoulombkcal(r, alpha, cutoff):
+def _sforce_dcoulombkcal(r: Array, 
+                         alpha: Array, 
+                         cutoff: float) -> Array:
     scalar_r = space.distance(r)
     _d = _dcoulombkcal(scalar_r, alpha, cutoff)
     return _d * r / scalar_r
@@ -66,7 +79,7 @@ def build_A_matrix(displacement_fn: Callable,
                    alpha: Array,
                    eta0: Array,
                    cutoff: float = 12.5,
-                   **kwargs) -> Array:            
+                   **kwargs) -> (Array, Array, Array):            
 
     mat_A = jnp.zeros((len(positions)+1, len(positions)+1))
     di = jnp.diag_indices(len(positions))
@@ -124,8 +137,12 @@ def build_b_vector(dRcc: Array,
     iidx, jidx = neighbor.idx
     dRcs = dRcc - shell_positions[jidx]
     scalar_dRcs = space.distance(dRcs)
-    b = b.at[iidx].add((-vmap_coulombkcal(scalar_dRcc, alpha[iidx, jidx], cutoff) +
-                        vmap_coulombkcal(scalar_dRcs, alpha[iidx, jidx], cutoff)
+    b = b.at[iidx].add((-vmap_coulombkcal(scalar_dRcc, 
+                                          alpha[iidx, jidx], 
+                                          cutoff) +
+                        vmap_coulombkcal(scalar_dRcs, 
+                                         alpha[iidx, jidx], 
+                                         cutoff)
                         ) * z[jidx])
     b = b.at[-1].set(net_charge)
 
@@ -142,10 +159,14 @@ def pqeq_fori_loop(displacement_fn: Callable,
                    net_charge: float = 0.0,
                    cutoff: float = 12.5,
                    iterations: int = 2,
-                   **kwargs
                    ) -> (Array, Array):
 
-    mat_A, dRcc, scalar_dRcc = build_A_matrix(displacement_fn, positions, neighbor, alpha, eta0, cutoff)
+    mat_A, dRcc, scalar_dRcc = build_A_matrix(displacement_fn, 
+                                              positions, 
+                                              neighbor, 
+                                              alpha, 
+                                              eta0, 
+                                              cutoff)
     r_shell = jnp.zeros_like(positions)
     if iterations == 1:
         vec_b = build_b_vector(dRcc, scalar_dRcc, positions, neighbor, r_shell, alpha, chi0, z, net_charge, cutoff)
@@ -199,7 +220,7 @@ def nonbond_potential(displacement_fn: Callable,
     dRss = dRcc + shell_positions[iidx] - shell_positions[jidx]
     dRcs = dRcc - shell_positions[jidx]
     mask = partition.neighbor_list_mask(neighbor, True)
-    
+
     # First order, second order and core-shell oscillator
     pot = jnp.dot(charges, chi0) + 0.5 * jnp.dot(charges**2, eta0) + \
           0.5 * jnp.dot(jnp.sum(jnp.square(shell_positions), axis=1), Ks) / EV2KCALPMOL
