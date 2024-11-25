@@ -3,7 +3,7 @@
 ![vistors](https://visitor-badge.laobi.icu/badge?page_id=reaxnet.jax-nb&right_color=green) 
 <a href='https://arxiv.org/abs/2410.13820'><img src='https://img.shields.io/badge/arXiv-2403.13820-blue'></a>
 
-![framework](site/framework.pdf)
+![framework](site/framework.png)
 
 The JAX implementation of [Polarizable Charge Equilibrium (PQEq) method](https://doi.org/10.1063/1.4978891) and [DFT-D3 diserpsion correction](https://doi.org/10.1063/1.3382344).
 ## Installation
