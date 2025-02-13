@@ -27,10 +27,17 @@ pip install git+https://github.com/reaxnet/jax-nb.git
 Please refer to [example/basic.ipynb](./example/basic.ipynb).
 
 ## Code test environment
+
+### Python Dependencies
 - Python 3.9
 - JAX 0.4.20
 - JAX-MD 0.2.8
 - NumPy 1.23.4
+
+### OS Requirements
+This package is supported for macOS and Linux. The code has tested on:
+- Ubuntu 22.04.4 LTS
+- MacOS 14.7
 
 ## Reference
 
