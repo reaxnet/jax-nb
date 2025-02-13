@@ -24,7 +24,7 @@ pip install git+https://github.com/reaxnet/jax-nb.git
 ```
 
 ## Usage
-Please refer to [example/basic.ipynb](./example/basic.ipynb).
+Please refer to [example/basic.ipynb](./example/basic.ipynb). It details usage, output and time cost.
 
 ## Code test environment
 
