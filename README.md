@@ -3,8 +3,6 @@
 ![vistors](https://visitor-badge.laobi.icu/badge?page_id=reaxnet.jax-nb&right_color=green) 
 <a href='https://arxiv.org/abs/2410.13820'><img src='https://img.shields.io/badge/arXiv-2403.13820-blue'></a>
 
-![framework](site/framework.png)
-
 The JAX implementation of [Polarizable Charge Equilibrium (PQEq) method](https://doi.org/10.1063/1.4978891) and [DFT-D3 diserpsion correction](https://doi.org/10.1063/1.3382344).
 ## Installation
 
@@ -43,8 +41,8 @@ This package is supported for macOS and Linux. The code has tested on:
 
 If you use this repository, please cite the following [preprint](https://doi.org/10.48550/arXiv.2410.13820):
 ```bib
-@article{gao2024enhancing,
-  title={Enhancing universal machine learning potentials with polarizable long-range interactions},
+@article{reaxnet,
+  title={A foundation machine learning potential with polarizable long-range interactions for materials modelling},
   author={Gao, Rongzhi and Yam, ChiYung and Mao, Jianjun and Chen, Shuguang and Chen, GuanHua and Hu, Ziyang},
   journal={arXiv preprint arXiv:2410.13820},
   year={2024}
