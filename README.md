@@ -47,6 +47,6 @@ If you use this repository, please cite the following [paper](https://www.nature
   journal={Nature Communications},
   year={2025},
   volume={16},
-  number={10484},
+  pages={10484},
 }
 ```
